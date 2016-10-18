@@ -1,0 +1,21 @@
+
+(1) & operator
+------------------------------------
+add = &(&1 + &2) 
+IS THE SAME AS..
+add = fn (a,b) -> a + b end
+-------------------------------------
+
+
+
+(2) keywordLists / Lists uses:
+----------------------------------------------------------
+list
+  a = [1,2,3]
+keywordList
+  a = [a: 1, b: 2, c: 3]  OR  a = [{:a, 1}, {:b, 2}, {:c, 3}]
+  
+appending/prepending items to a list
+DONT use them in PatternMatching, well try not to :)
+DONT use for finding an item in the list IF the list is quite large    
+-------------------------------------------------------------
