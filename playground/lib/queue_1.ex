@@ -1,4 +1,4 @@
-defmodule Tavern.Queue1 do
+defmodule Queue do
 
     @doc """
     Starts a new queue

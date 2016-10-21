@@ -1,0 +1,77 @@
+defmodule Tavern.Register do
+    use GenServer
+
+    # Client Api
+    @doc """
+    Start a new register
+    """
+    def start_link(name) do
+        GenServer.start_link(__MODULE__, [], name: name) # bind the name passed from sup
+    end
+
+    @doc """
+    Find a queue
+    """
+    def lookup(server, name) do
+        GenServer.call(server, {:lookup, name})
+    end
+
+    @doc """
+    Stops the registry.
+    """
+    def stop(server) do
+        GenServer.stop(server)
+    end
+
+    @doc """
+    Create a new queue and add it to the queue register
+    """
+    def create(server, name) do
+        GenServer.cast(server, {:create, name})
+    end
+
+    # Gen server callbacks
+    def init(_args) do
+        names = %{}
+        refs  = %{}
+        {:ok, {names, refs}}
+    end
+    
+    def handle_call({:lookup, name}, _from, {names, _} = state) do
+        {:reply, Map.fetch(names, name), state}
+    end
+    
+    # def handle_call({:create, name}, _from, {queues, refs}) do
+    #     if Map.has_key?(queues, name) do
+    #         {:reply, :already_exists, queues}
+    #     else
+    #         {:ok, pid} = Tavern.Queue.Supervisor.start_queue
+    #         ref = Process.monitor(pid)
+    #         refs = Map.put(refs, ref, name)
+    #         queues = Map.put(queues, name, pid)
+    #         {:reply, pid, {queues, refs}}        
+    #     end
+    # end
+
+    def handle_cast({:create, name}, {names, refs}) do
+        if Map.has_key?(names, name) do
+            {:noreply, {names, refs}}
+        else
+            {:ok, queue} = Tavern.Queue.start_link
+            ref = Process.monitor queue
+            refs = Map.put(refs, ref, name)
+            names = Map.put(names, name, queue)
+            {:noreply, {names, refs}}
+        end
+    end
+
+    def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
+        {name, refs} = Map.pop(refs, ref)
+        names = Map.delete(names, name)
+        {:noreply, {names, refs}}
+    end
+
+    def handle_info(_msg, state) do
+        {:noreply, state}
+    end
+end

@@ -21,12 +21,12 @@ defmodule Tavern.Queue do
     Put a messgae onto the queue
     """
     def put(queue, msg) do
-        Agent.update(queue, fn messages ->  [msg] ++ messages end)        
+        Agent.update(queue, fn messages -> messages ++ [msg] end)        
     end
 
-    defp pop([]), do: :no_messages
-    defp pop([head | _]) do
-        head
+    defp pop([]), do: {:no_messages}
+    defp pop([msg | _]) do
+        {:ok,msg}
     end
 
     defp safe_tail([]), do: []
