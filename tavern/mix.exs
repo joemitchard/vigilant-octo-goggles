@@ -1,4 +1,4 @@
-defmodule Tavern.Mixfile do
+defmodule TavernApp.Mixfile do
   use Mix.Project
 
   def project do
