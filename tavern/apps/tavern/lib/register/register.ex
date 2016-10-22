@@ -17,17 +17,17 @@ defmodule Tavern.Register do
     end
 
     @doc """
+    Create a new queue and add it to the queue register
+    """
+    def create(server, name) do
+        GenServer.call(server, {:create, name})
+    end
+
+    @doc """
     Stops the registry.
     """
     def stop(server) do
         GenServer.stop(server)
-    end
-
-    @doc """
-    Create a new queue and add it to the queue register
-    """
-    def create(server, name) do
-        GenServer.cast(server, {:create, name})
     end
 
     # Gen server callbacks
@@ -41,27 +41,15 @@ defmodule Tavern.Register do
         {:reply, Map.fetch(names, name), state}
     end
     
-    # def handle_call({:create, name}, _from, {queues, refs}) do
-    #     if Map.has_key?(queues, name) do
-    #         {:reply, :already_exists, queues}
-    #     else
-    #         {:ok, pid} = Tavern.Queue.Supervisor.start_queue
-    #         ref = Process.monitor(pid)
-    #         refs = Map.put(refs, ref, name)
-    #         queues = Map.put(queues, name, pid)
-    #         {:reply, pid, {queues, refs}}        
-    #     end
-    # end
-
-    def handle_cast({:create, name}, {names, refs}) do
+    def handle_call({:create, name}, _from, {names, refs} = state) do
         if Map.has_key?(names, name) do
-            {:noreply, {names, refs}}
+            {:reply, :already_exists, state}
         else
-            {:ok, queue} = Tavern.Queue.start_link
-            ref = Process.monitor queue
+            {:ok, queue} = Tavern.Queue.Supervisor.start_queue
+            ref = Process.monitor(queue)
             refs = Map.put(refs, ref, name)
             names = Map.put(names, name, queue)
-            {:noreply, {names, refs}}
+            {:reply, :ok, {names, refs}}        
         end
     end
 

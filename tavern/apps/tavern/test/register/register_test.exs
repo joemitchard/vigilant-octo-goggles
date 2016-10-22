@@ -48,4 +48,10 @@ defmodule Tavern.RegisterTest do
         Agent.stop(queue)
         assert Tavern.Register.lookup(register, "test") == :error
     end
+
+    test "create queue logic", %{register: register} do
+        assert Tavern.Register.create(register, "q1") == :ok
+        assert Tavern.Register.create(register, "q1") == :already_exists
+        assert Tavern.Register.create(register, "q2") == :ok
+    end
 end
