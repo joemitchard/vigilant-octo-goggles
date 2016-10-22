@@ -23,6 +23,25 @@ defmodule Tavern.RegisterTest do
 
     end
 
+    test "spawn multiple queues", %{register: register} do
+        Tavern.Register.create(register, "q1")
+        Tavern.Register.create(register, "q2")
+
+        assert {:ok, q1} = Tavern.Register.lookup(register, "q1")
+        assert {:ok, q2} = Tavern.Register.lookup(register, "q2")
+
+        Tavern.Queue.put(q1, "first queue")
+        Tavern.Queue.put(q2, "second queue")
+        Tavern.Queue.put(q1, "first queue again")
+
+        assert Tavern.Queue.get(q1) == {:ok, "first queue"}
+        assert Tavern.Queue.get(q1) == {:ok, "first queue again"}
+        assert Tavern.Queue.get(q2) == {:ok, "second queue"}
+
+        assert Tavern.Queue.get(q1) == {:no_messages}
+        assert Tavern.Queue.get(q2) == {:no_messages}
+    end
+
     test "removes queues on exit", %{register: register} do
         Tavern.Register.create(register, "test")
         {:ok, queue} = Tavern.Register.lookup(register, "test")
