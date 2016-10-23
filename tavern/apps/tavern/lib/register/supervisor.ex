@@ -8,7 +8,8 @@ defmodule Tavern.Supervisor do
     def init(:ok) do
         children = [
             worker(Tavern.Register, [Tavern.Register]),
-            supervisor(Tavern.Queue.Supervisor, [])
+            supervisor(Tavern.Queue.Supervisor, []),
+            supervisor(Tavern.Person.Supervisor, [])            
         ]
 
         supervise(children, strategy: :one_for_one)
