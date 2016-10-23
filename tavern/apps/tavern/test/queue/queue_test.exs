@@ -10,11 +10,11 @@ defmodule Tavern.QueueTest do
     test "store messages", %{queue: queue} do    
         assert Tavern.Queue.get(queue) == {:no_messages}
 
-        Tavern.Queue.put(queue, "hello")
-        Tavern.Queue.put(queue, "world")
+        Tavern.Queue.put(queue, {"hello", self()})
+        Tavern.Queue.put(queue, {"world", self()})
 
-        assert Tavern.Queue.get(queue) == {:ok, "hello"}
-        assert Tavern.Queue.get(queue) == {:ok, "world"}
+        assert Tavern.Queue.get(queue) == {:ok, {"hello", self()}}
+        assert Tavern.Queue.get(queue) == {:ok, {"world", self()}}
         assert Tavern.Queue.get(queue) == {:no_messages}
     end
 end
