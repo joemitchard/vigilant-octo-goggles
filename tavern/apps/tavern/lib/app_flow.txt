@@ -1,0 +1,21 @@
+----------
+--SIMPLE--
+----------
+
+# user joins app
+
+    -> user enters email address (UUID) 
+    -> register new Person in Tavern.ActiveUsers.Registry, ie: init new person process; store PID by key(user email) in registry 
+    -> send new user list of other active users
+
+# start chat with a user
+    -> user_1 selects user_2 from list
+    -> send request to start new chat
+    -> init new chat session
+        --> new genServer with name user1_user2, eg: 'tom@123.com_bob@mail.com'
+
+
+
+--------------
+---ADVANCED---
+--------------
