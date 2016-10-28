@@ -4,9 +4,10 @@
 
 # user joins app
 
-    -> user enters email address (UUID) 
+    -> user enters email address (UUID) (This looks cool: https://github.com/zyro/elixir-uuid)
     -> register new Person in Tavern.ActiveUsers.Registry, ie: init new person process; store PID by key(user email) in registry 
-    -> send new user list of other active users
+    -> send new user list of other active users 
+        -> I like this, but would suggest we make some sort of look where every x time we poll the registry, possibly better to have n things polling, rather than one thing having one thing telling everyone... had a similar situation with the zombie thing and this proved (supprisingly) more effective... Concurrency is strange :|
 
 # start chat with a user
     -> user_1 selects user_2 from list
@@ -19,3 +20,7 @@
 --------------
 ---ADVANCED---
 --------------
+
+# Group chats
+
+    -> Could simply be a chat with a message queue, and n users. Each user subscribes to the message queue of the chat, polls for new messages. 
