@@ -18,6 +18,31 @@ defmodule Tavern.ChatTest do
                  {:ok, pid1} <- Tavern.Register.lookup(Tavern.Register, name),
                  do: pid1
 
-        assert Process.alive?(inbox_1) === true         
+        assert Process.alive?(inbox_1) === true
+
+        inbox_2 = 
+            with {:ok, name2} <- Tavern.Chat.lookup_inbox(refs[:chat], refs[:user2]),
+                 {:ok, pid2} <- Tavern.Register.lookup(Tavern.Register, name2),
+                 do: pid2         
+
+        
+        assert Process.alive?(inbox_2) === true 
+    end
+
+    test "can send message to inbox", %{refs: refs} do
+        assert Tavern.Chat.send_msg(refs[:chat], "msg 1", refs[:user1]) === {:ok}
+        assert Tavern.Chat.send_msg(refs[:chat], "msg 2", refs[:user2]) === {:ok}
+
+        assert {:ok, "msg 1"} == 
+            with {:ok, name} <- Tavern.Chat.lookup_inbox(refs[:chat], refs[:user1]),
+                 {:ok, pid1} <- Tavern.Register.lookup(Tavern.Register, name),
+                 do: Tavern.Queue.get(pid1)
+
+
+        assert {:ok, "msg 2"} == 
+            with {:ok, name2} <- Tavern.Chat.lookup_inbox(refs[:chat], refs[:user2]),
+                 {:ok, pid2} <- Tavern.Register.lookup(Tavern.Register, name2),
+                 do: Tavern.Queue.get(pid2)
+
     end
 end

@@ -23,4 +23,8 @@
 ---ADVANCED FEATURES---
 -----------------------
 
-# 
+# Group Chats 
+
+# Private Chats -> send msgs directly to/from user nodes??
+
+# Super Private Chats -> same as above but as soon as user reads msg, it is then deleted. "What happens in the tavern stays in the tavern..." :)

@@ -13,6 +13,10 @@ defmodule Tavern.Chat do
        GenServer.call(server, {:lookup_inbox, user})
    end
 
+   def send_msg(server, msg, recipient) do
+       GenServer.call(server, {:send, msg, recipient})
+   end
+
 
    # Callbacks
 
@@ -23,7 +27,7 @@ defmodule Tavern.Chat do
        Tavern.Register.create(Tavern.Register, inbox_1)
        Tavern.Register.create(Tavern.Register, inbox_2)
 
-       users = %{userid_1 => inbox_1, userid_2: inbox_2}
+       users = %{userid_1 => inbox_1, userid_2 => inbox_2}
 
        {:ok, {users}}
    end
@@ -32,6 +36,24 @@ defmodule Tavern.Chat do
        case Map.has_key?(users, user) do
            true -> {:reply, Map.fetch(users, user), state}
            _ -> {:reply, :not_found, state} 
+       end
+   end
+
+   def handle_call({:send, msg, recipient}, _from, {users} = state) do
+       result = 
+            with {:ok, inbox} <- user_exists(users, recipient),
+                 {:ok, pid}   <- Tavern.Register.lookup(Tavern.Register, inbox),
+                 :ok          <- Tavern.Queue.put(pid, msg),
+                 do: {:ok}
+
+       {:reply, result, state}       
+   end
+
+
+   defp user_exists(users, user) do
+       case Map.has_key?(users, user) do
+           true -> Map.fetch(users, user)
+           _    -> :not_found 
        end
    end
 
