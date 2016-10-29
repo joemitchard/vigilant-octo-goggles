@@ -1,5 +1,5 @@
 ----------
---SIMPLE--
+--TAVERN--
 ----------
 
 # user joins app
@@ -9,13 +9,18 @@
     -> send new user list of other active users
 
 # start chat with a user
-    -> user_1 selects user_2 from list
+    -> user_1 Selects user_2 from list
     -> send request to start new chat
-    -> init new chat session
-        --> new genServer with name user1_user2, eg: 'tom@123.com_bob@mail.com'
+    -> init new ChatSession
+        --> start_link (__MODULE__, {user_1, user_2}, [name: ...]
+        --> TODO: what should genServer name be??
+    -> 
 
 
 
---------------
----ADVANCED---
---------------
+
+-----------------------
+---ADVANCED FEATURES---
+-----------------------
+
+# 
