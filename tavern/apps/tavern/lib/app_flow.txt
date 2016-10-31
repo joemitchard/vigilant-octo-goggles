@@ -1,5 +1,5 @@
 ----------
---SIMPLE--
+--TAVERN--
 ----------
 
 # user joins app
@@ -10,17 +10,21 @@
         -> I like this, but would suggest we make some sort of look where every x time we poll the registry, possibly better to have n things polling, rather than one thing having one thing telling everyone... had a similar situation with the zombie thing and this proved (supprisingly) more effective... Concurrency is strange :|
 
 # start chat with a user
-    -> user_1 selects user_2 from list
+    -> user_1 Selects user_2 from list
     -> send request to start new chat
-    -> init new chat session
-        --> new genServer with name user1_user2, eg: 'tom@123.com_bob@mail.com'
+    -> init new ChatSession
+        --> start_link (__MODULE__, {user_1, user_2}, [name: ...]
+        --> TODO: what should genServer name be??
+    -> 
 
 
+-----------------------
+---ADVANCED FEATURES---
+-----------------------
 
---------------
----ADVANCED---
---------------
+# Group Chats 
 
-# Group chats
+# Private Chats -> send msgs directly to/from user nodes??
 
-    -> Could simply be a chat with a message queue, and n users. Each user subscribes to the message queue of the chat, polls for new messages. 
+# Super Private Chats -> same as above but as soon as user reads msg, it is then deleted. "What happens in the tavern stays in the tavern..." :)
+>>>>>>> tavern_server
