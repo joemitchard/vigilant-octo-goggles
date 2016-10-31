@@ -26,6 +26,8 @@ defmodule TavernServer do
         loop_acceptor(socket)
     end
 
+
+
     defp loop_acceptor(socket) do
         {:ok, client} = :gen_tcp.accept(socket)
         
@@ -38,22 +40,35 @@ defmodule TavernServer do
     end
 
     defp serve(socket) do
-        socket
-            |> read_line()
-            |> write_line(socket)
+        msg =
+            with    {:ok, data}    <- read_line(socket),
+                    {:ok, command} <- TavernServer.Command.parse(data),
+                    do: TavernServer.Command.run(command)
+
+        write_line(socket, msg)
 
         serve(socket)
     end
 
     defp read_line(socket) do
-        {:ok, data} = :gen_tcp.recv(socket, 0)
-        data
+        :gen_tcp.recv(socket, 0)
     end
 
-    defp write_line(line, socket) do
-        :gen_tcp.send(socket, line)
+    defp write_line(socket, {:ok, text}) do
+        :gen_tcp.send(socket, text)
     end
 
+    defp write_line(socket, {:error, :unknown_command}) do
+        :gen_tcp.send(socket, "UNKNOWN COMMAND\r\n")
+    end
 
+    defp write_line(_socket, {:error, :closed}) do
+        exit(:shutdown)
+    end
+
+    defp write_line(socket, {:error, error}) do
+        :gen_tcp.send(socket, "ERROR\r\n")
+        exit(error)
+    end
 
 end
