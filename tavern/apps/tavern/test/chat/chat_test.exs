@@ -5,7 +5,7 @@ defmodule Tavern.ChatTest do
         user_1 = "lloyd@mail.com" 
         user_2 = "joe@mail.com"
 
-        {:ok, chat} = Tavern.Chat.start_link({user_1, user_2})
+        {:ok, chat} = Tavern.Chat.start_link(user_1, user_2)
         refs = %{chat: chat, user1: user_1, user2: user_2}
         {:ok, refs: refs}
     end
@@ -44,5 +44,19 @@ defmodule Tavern.ChatTest do
                  {:ok, pid2} <- Tavern.Register.lookup(Tavern.Register, name2),
                  do: Tavern.Queue.get(pid2)
 
+    end
+
+    test "can send and receive messages", %{refs: refs} do
+        assert Tavern.Chat.send_msg(refs[:chat], "msg 1", refs[:user1]) === {:ok}
+        assert Tavern.Chat.get_msg(refs[:chat], refs[:user1]) === {:ok, "msg 1"}
+
+        assert Tavern.Chat.send_msg(refs[:chat], "msg 2", refs[:user2]) === {:ok}
+        assert Tavern.Chat.get_msg(refs[:chat], refs[:user2]) === {:ok, "msg 2"}
+    end
+
+    test "new chat has no messages", %{refs: refs} do
+        assert Tavern.Chat.get_msg(refs[:chat], refs[:user1]) === {:no_messages}
+
+        assert Tavern.Chat.get_msg(refs[:chat], refs[:user2]) === {:no_messages}
     end
 end

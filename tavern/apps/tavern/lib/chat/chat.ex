@@ -1,7 +1,7 @@
 defmodule Tavern.Chat do
    use GenServer
 
-   def start_link({userid_1, userid_2}) do 
+   def start_link(userid_1, userid_2) do 
        GenServer.start_link(__MODULE__, {userid_1, userid_2})  # userid = unique user identifier, ie: joe@mail.com 
    end
    
@@ -15,6 +15,10 @@ defmodule Tavern.Chat do
 
    def send_msg(server, msg, recipient) do
        GenServer.call(server, {:send, msg, recipient})
+   end
+
+   def get_msg(server, user) do
+       GenServer.call(server, {:get_msg, user})
    end
 
 
@@ -37,6 +41,16 @@ defmodule Tavern.Chat do
            true -> {:reply, Map.fetch(users, user), state}
            _ -> {:reply, :not_found, state} 
        end
+   end
+
+   def handle_call({:get_msg, recipient}, _from, {users} = state) do
+       result = 
+            with {:ok, inbox} <- user_exists(users, recipient),
+                 {:ok, pid}   <- Tavern.Register.lookup(Tavern.Register, inbox),
+                 {:ok, msg}   <- Tavern.Queue.get(pid),
+                 do: {:ok, msg}
+
+       {:reply, result, state}       
    end
 
    def handle_call({:send, msg, recipient}, _from, {users} = state) do

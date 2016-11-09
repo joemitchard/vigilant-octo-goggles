@@ -3,6 +3,7 @@ defmodule Tavern do
     # this is the application entry point.
     def start(_type, _args) do
         Tavern.Supervisor.start_link
+        Tavern.ChatDirectory.Supervisor.start_link
     end
 
 end

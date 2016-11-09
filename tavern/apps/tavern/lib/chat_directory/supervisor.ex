@@ -1,4 +1,4 @@
-defmodule Tavern.Supervisor do
+defmodule Tavern.ChatDirectory.Supervisor do
     use Supervisor
 
     def start_link do
@@ -7,9 +7,8 @@ defmodule Tavern.Supervisor do
 
     def init(:ok) do
         children = [
-            worker(Tavern.Register, [Tavern.Register]),
-            supervisor(Tavern.Queue.Supervisor, []),
-            supervisor(Tavern.Person.Supervisor, [])        
+            worker(Tavern.ChatDirectory, [Tavern.ChatDirectory]),
+            supervisor(Tavern.Chat.Supervisor, [])           
         ]
 
         supervise(children, strategy: :one_for_one)
