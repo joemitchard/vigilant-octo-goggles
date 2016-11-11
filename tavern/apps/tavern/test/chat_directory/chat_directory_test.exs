@@ -15,4 +15,6 @@ defmodule Tavern.ChatDirectoryTest do
         Tavern.Chat.send_msg(chat_pid, "a msg", "user_2")
         assert Tavern.Chat.get_msg(chat_pid, "user_2") == {:ok, "a msg"}
     end
+
+
 end

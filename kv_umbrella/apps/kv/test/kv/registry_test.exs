@@ -1,8 +1,20 @@
 defmodule KV.RegistryTest do
     use ExUnit.Case, async: true
 
+    defmodule Forwarder do
+        use GenEvent
+
+        def handle_event(event, state_pid) do
+            send state_pid, event
+            {:ok, state_pid}
+        end
+    end
+
     setup context do
-        {:ok, _} = KV.Registry.start_link(context.test)
+        {:ok, event_manager} = GenEvent.start_link
+        {:ok, _} = KV.Registry.start_link(context.test, event_manager)
+
+        GenEvent.add_mon_handler(event_manager, Forwarder, self())
         {:ok, registry: context.test}
     end
 
