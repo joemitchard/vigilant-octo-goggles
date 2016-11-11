@@ -5,9 +5,9 @@ defmodule KV.Registry do
     @doc """
     Start the registry with given name
     """
-    def start_link(name) do
+    def start_link(name, event_manager, ets) do
         # pass the name to the init function
-        GenServer.start_link(__MODULE__, name, name: name)
+        GenServer.start_link(__MODULE__, {ets, event_manager}, name: name)
     end
 
     @doc """
@@ -36,29 +36,31 @@ defmodule KV.Registry do
     end
 
     # callbacks
-    def init(table) do
-        names = :ets.new(table, [:named_table, read_concurrency: true])
+    def init({ets_table, event_manager}) do
+        #names = :ets.new(table_name, [:named_table, read_concurrency: true])
         refs  = %{}
-        {:ok, {names, refs}}
+        {:ok, %{names: ets_table, refs: refs, event_man: event_manager}}
     end
 
-    def handle_call({:create, name}, _from, {names, refs}) do
-        case lookup(names, name) do
+    def handle_call({:create, name}, _from, state) do
+        case lookup(state.names, name) do
             {:ok, pid} ->
-                {:reply, pid, {names, refs}}
+                {:reply, pid, state}
             :error ->
                 {:ok, pid} = KV.Bucket.Supervisor.start_bucket
                 ref = Process.monitor(pid)
-                refs = Map.put(refs, ref, name)
-                :ets.insert(names, {name, pid})
-                {:reply, pid, {names, refs}}
+                refs = Map.put(state.refs, ref, name)
+                :ets.insert(state.names, {name, pid})
+                GenEvent.sync_notify(state.event_man, {:create, name, pid})
+                {:reply, pid, %{state | refs: refs}}
         end
     end
 
-    def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
-        {name, refs} = Map.pop(refs, ref)
-        :ets.delete(names, name)
-        {:noreply, {names, refs}}
+    def handle_info({:DOWN, ref, :process, pid, _reason}, state) do
+        {name, refs} = Map.pop(state.refs, ref)
+        :ets.delete(state.names, name)
+        GenEvent.sync_notify(state.event_man, {:exit, name, pid})
+        {:noreply, %{state | refs: refs}}
     end
 
     def handle_info(_msg, state) do

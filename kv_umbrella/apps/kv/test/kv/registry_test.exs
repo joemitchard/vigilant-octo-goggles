@@ -11,11 +11,23 @@ defmodule KV.RegistryTest do
     end
 
     setup context do
+        ets = :ets.new(context.test, [:set, :public, :named_table]) # bug -> if ets name is diff from registry name is breaks!!!
         {:ok, event_manager} = GenEvent.start_link
-        {:ok, _} = KV.Registry.start_link(context.test, event_manager)
+        {:ok, _} = KV.Registry.start_link(context.test, event_manager, ets)
 
         GenEvent.add_mon_handler(event_manager, Forwarder, self())
         {:ok, registry: context.test}
+    end
+
+    
+
+    test "sends events on create and crash", %{registry: registry} do
+        KV.Registry.create(registry, "shopping")
+        {:ok, bucket} = KV.Registry.lookup(registry, "shopping")
+        assert_receive {:create, "shopping", ^bucket}
+
+        Agent.stop(bucket)
+        assert_receive {:exit, "shopping", ^bucket}
     end
 
     test "spawn buckets", %{registry: registry} do
