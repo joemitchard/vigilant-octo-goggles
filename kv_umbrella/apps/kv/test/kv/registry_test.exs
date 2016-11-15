@@ -11,15 +11,40 @@ defmodule KV.RegistryTest do
     end
 
     setup context do
+        #reg_name = context.test
         ets = :ets.new(context.test, [:set, :public, :named_table]) # bug -> if ets name is diff from registry name is breaks!!!
-        {:ok, event_manager} = GenEvent.start_link
-        {:ok, _} = KV.Registry.start_link(context.test, event_manager, ets)
+        pid = start_registry(context.test, ets)
 
-        GenEvent.add_mon_handler(event_manager, Forwarder, self())
-        {:ok, registry: context.test}
+        {:ok, registry: context.test, ets: ets, pid: pid}
+        #{:ok, registry: context.test, ets: ets}
     end
 
-    
+    defp start_registry(reg_name, ets) do
+        {:ok, event_manager} = GenEvent.start_link
+        {:ok, pid} = KV.Registry.start_link(reg_name, event_manager, ets)
+
+        GenEvent.add_mon_handler(event_manager, Forwarder, self())
+
+        pid
+    end
+
+    test "monitors existing entries", %{registry: registry, ets: ets, pid: pid} do
+        
+        bucket = KV.Registry.create(registry, "shopping")
+
+        # Kill the registry. We unlink first, otherwise it will kill the test
+        Process.unlink(pid)
+        Process.exit(pid, :shutdown)
+
+        # Start a new registry with the existing table and access the bucket
+        start_registry(registry, ets)
+        assert KV.Registry.lookup(registry, "shopping") == {:ok, bucket}
+
+        # Once the bucket dies, we should receive notifications
+        Process.exit(bucket, :shutdown)
+        assert_receive {:exit, "shopping", ^bucket}
+        assert KV.Registry.lookup(registry, "shopping") == :error
+    end
 
     test "sends events on create and crash", %{registry: registry} do
         KV.Registry.create(registry, "shopping")
@@ -28,6 +53,7 @@ defmodule KV.RegistryTest do
 
         Agent.stop(bucket)
         assert_receive {:exit, "shopping", ^bucket}
+
     end
 
     test "spawn buckets", %{registry: registry} do

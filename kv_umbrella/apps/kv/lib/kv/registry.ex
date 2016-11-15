@@ -37,8 +37,12 @@ defmodule KV.Registry do
 
     # callbacks
     def init({ets_table, event_manager}) do
-        #names = :ets.new(table_name, [:named_table, read_concurrency: true])
-        refs  = %{}
+        #refs  = %{}
+
+        refs = :ets.foldl(fn {name, pid}, acc ->
+            Map.put(acc, Process.monitor(pid), name)
+        end, Map.new, ets_table)
+
         {:ok, %{names: ets_table, refs: refs, event_man: event_manager}}
     end
 
