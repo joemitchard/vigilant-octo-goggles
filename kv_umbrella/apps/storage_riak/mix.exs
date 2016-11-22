@@ -1,8 +1,8 @@
-defmodule TavernData.Mixfile do
+defmodule StorageRiak.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :tavern_data,
+    [app: :storage_riak,
      version: "0.1.0",
      build_path: "../../_build",
      config_path: "../../config/config.exs",
@@ -19,7 +19,7 @@ defmodule TavernData.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [applications: [:logger, :riak],
-     mod: {TavernData, []}]
+     mod: {StorageRiak, []}]
   end
 
   # Dependencies can be Hex packages:
